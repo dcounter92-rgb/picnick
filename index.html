@@ -29,7 +29,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow-x: hidden;
+            overflow: hidden;
             position: relative;
             padding: 20px 10px;
         }
@@ -97,24 +97,9 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Bomb & Explosion Animations for "NO" */
-        .shake-bomb {
-            animation: shake 0.5s infinite;
-            background: rgba(255, 0, 0, 0.3) !important;
-            border-color: #ff0000 !important;
-        }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-
+        /* Explosion Animation for "NO" */
         .explode {
-            animation: blowUp 0.4s forwards ease-out !important;
+            animation: blowUp 0.3s forwards ease-out !important;
         }
 
         @keyframes blowUp {
@@ -123,7 +108,7 @@
             100% { transform: scale(2); opacity: 0; visibility: hidden; }
         }
 
-        /* Center Pop-Up Display (Broken Heart or Kiss) */
+        /* Center Pop-Up Display (Kiss) */
         .popup-display {
             position: fixed;
             top: 50%;
@@ -265,7 +250,7 @@
             z-index: 1;
         }
 
-        /* Full Screen Animation Overlays */
+        /* Full Screen Animation Overlay */
         .overlay-layer {
             position: fixed;
             top: 0;
@@ -289,22 +274,52 @@
             }
         }
 
-        /* Lava Pit Bottom */
-        .lava-container {
+        /* Blackout Layer for Ending */
+        .blackout-screen {
             position: fixed;
-            bottom: -150px;
+            top: 0;
             left: 0;
-            width: 100%;
-            height: 140px;
-            background: linear-gradient(0deg, #ff1a1a 0%, #ff6b00 70%, transparent 100%);
-            box-shadow: 0 -10px 40px #ff3300;
-            transition: bottom 1.2s cubic-bezier(0.1, 0.8, 0.3, 1);
-            z-index: 90;
+            width: 100vw;
+            height: 100vh;
+            background: #000000;
+            z-index: 300;
+            opacity: 0;
             pointer-events: none;
+            transition: opacity 0.8s ease-in-out;
         }
 
-        .lava-active {
-            bottom: 0;
+        .blackout-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Centered Final Thank You Card */
+        .thank-you-card {
+            position: fixed;
+            bottom: -250px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 28px;
+            padding: 40px 50px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: bold;
+            box-shadow: 0 20px 60px rgba(255, 77, 109, 0.3);
+            z-index: 400;
+            opacity: 0;
+            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            white-space: nowrap;
+        }
+
+        .thank-you-card.center-active {
+            bottom: 50%;
+            transform: translate(-50%, 50%);
+            opacity: 1;
         }
 
         .status-text {
@@ -358,12 +373,19 @@
         <div class="status-text" id="statusText"></div>
     </div>
 
-    <!-- Pop-Up Center Display Element -->
+    <!-- Pop-Up Kiss Display -->
     <div class="popup-display" id="popupDisplay"></div>
 
-    <!-- Animation Layer & Lava Pit -->
+    <!-- Falling Animation Overlay -->
     <div class="overlay-layer" id="overlayLayer"></div>
-    <div class="lava-container" id="lavaContainer"></div>
+
+    <!-- Blackout Screen for Final Transition -->
+    <div class="blackout-screen" id="blackoutScreen"></div>
+
+    <!-- Centered Final Thank You Card -->
+    <div class="thank-you-card" id="thankYouCard">
+        Thank You A Lot! ❤️✨
+    </div>
 
     <script>
         // Formspree Integration Endpoint
@@ -398,17 +420,15 @@
 
         let isSubmitted = false;
 
-        // 3. Dynamic "NO" Button Logic: Bomb Explosion + Broken Heart Pop-Up
+        // 3. "NO" Button Click: Blow up invitation & close immediately
         async function onDecline() {
             if (isSubmitted) return;
             isSubmitted = true;
 
             const card = document.getElementById('inviteCard');
+            card.classList.add('explode');
 
-            // Shake card like a ticking bomb
-            card.classList.add('shake-bomb');
-
-            // Send decline notification to your Gmail
+            // Send notification email in background
             try {
                 fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
@@ -423,28 +443,13 @@
                 console.error(err);
             }
 
-            // Blow up and vanish after brief shake
+            // Close window immediately after explosion
             setTimeout(() => {
-                card.classList.remove('shake-bomb');
-                card.classList.add('explode');
-
-                // Pop up big broken heart & bring up lava
-                setTimeout(() => {
-                    const popup = document.getElementById('popupDisplay');
-                    if (popup) {
-                        popup.innerHTML = `
-                            <div style="font-size: 110px; filter: drop-shadow(0 0 30px rgba(255, 0, 0, 0.8)); animation: pulseSymbol 1.5s infinite ease-in-out;">💔</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #ff4d4d; margin-top: 15px; text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);">Oh no... Invitation Destroyed!</div>
-                        `;
-                        popup.classList.add('active');
-                    }
-                    document.getElementById('lavaContainer').classList.add('lava-active');
-                    startRain(['💔', '🔥', '💥'], 150);
-                }, 300);
-            }, 600);
+                window.close();
+            }, 300);
         }
 
-        // 4. "YES" Click Action -> Rain Hearts, Pop-Up Kiss, Thank You Card & Page Close
+        // 4. "YES" Button Click: Kiss pop-up -> Blackout -> Thank You card in center
         async function onAccept() {
             if (isSubmitted) return;
             isSubmitted = true;
@@ -454,7 +459,7 @@
             // Trigger Heart Rain Effect
             startRain(['❤️', '💖', '✨', '💕', '🌸'], 120);
 
-            // Trigger Pop-Up Kiss Effect
+            // Trigger Pop-Up Kiss
             const popup = document.getElementById('popupDisplay');
             if (popup) {
                 popup.innerHTML = `
@@ -464,7 +469,7 @@
                 popup.classList.add('active');
             }
 
-            // Send notification to your Gmail via Formspree
+            // Send notification email
             try {
                 await fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
@@ -476,48 +481,18 @@
                         Date: 'November 4th (10:30 AM - 2:30 PM)'
                     })
                 });
-                document.getElementById('statusText').innerText = "Yay! See you on Nov 4th! ❤️";
             } catch (err) {
-                document.getElementById('statusText').innerText = "Yay! Invitation Accepted!";
+                console.error(err);
             }
 
-            // Show "Thank You A Lot" Card Fading Up From Bottom
+            // Transition into pure black background & show Thank You card in middle
             setTimeout(() => {
-                const thankYouCard = document.createElement('div');
-                thankYouCard.style.cssText = `
-                    position: fixed;
-                    bottom: -200px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    border-radius: 20px;
-                    padding: 25px 35px;
-                    text-align: center;
-                    color: #fff;
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-                    z-index: 200;
-                    opacity: 0;
-                    transition: all 1s ease-out;
-                `;
-                thankYouCard.innerHTML = "Thank You A Lot! ❤️✨";
-                document.body.appendChild(thankYouCard);
-
-                // Animate fade up
+                document.getElementById('blackoutScreen').classList.add('active');
+                
                 setTimeout(() => {
-                    thankYouCard.style.bottom = "100px";
-                    thankYouCard.style.opacity = "1";
-                }, 100);
-
-                // Close the page automatically 2 seconds after Thank You appears
-                setTimeout(() => {
-                    window.close();
-                }, 2000);
-            }, 1000);
+                    document.getElementById('thankYouCard').classList.add('center-active');
+                }, 400);
+            }, 1200);
         }
 
         // 5. Rain Animation Trigger
