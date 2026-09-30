@@ -274,12 +274,12 @@
     <!-- Main Invitation Card -->
     <div class="card">
         <span class="badge">Official Invitation</span>
-        <h1>For: Chuti ❤️</h1>
+        <h1>For: Dear Chuti ❤️</h1>
 
         <div class="info-container">
             <div class="info-row">
                 <span class="icon">🧺</span>
-                <span><strong>Event:</strong> Picnic & Lunch</span>
+                <span><strong>Occasion:</strong> Picnic & Lunch</span>
             </div>
             <div class="info-row">
                 <span class="icon">📍</span>
@@ -291,14 +291,14 @@
             </div>
 
             <div class="game-plan">
-                <div class="plan-header">The Game Plan</div>
+                <div class="plan-header"> Blueprint </div>
                 <div class="plan-step">Relaxing outdoor picnic</div>
-                <div class="plan-step">Lunch at a great spot</div>
+                <div class="plan-step">Lunch at a Charming location </div>
                 <div class="plan-step">Heading back home together</div>
             </div>
         </div>
 
-        <p style="font-size: 0.95rem; color: #e0e0e0; font-weight: 500;">Will you come with me?</p>
+        <p style="font-size: 0.95rem; color: #e0e0e0; font-weight: 500;"> Would you care to accompany me? </p>
 
         <div class="btn-container">
             <button class="btn btn-yes" id="yesBtn" onclick="onAccept()">YES! ✨</button>
@@ -346,31 +346,69 @@
         let yesScale = 1;
         let isSubmitted = false;
 
-        // 3. Dynamic "NO" Button click logic -> Grows the "YES" button!
-        function onDecline() {
+      // Dynamic "NO" Button Logic: Bomb Explosion + Broken Heart Pop-Up
+        async function onDecline() {
             if (isSubmitted) return;
-            
-            yesScale += 0.35;
-            const yesBtn = document.getElementById('yesBtn');
-            yesBtn.style.transform = `scale(${yesScale})`;
+            isSubmitted = true;
 
-            if (yesScale > 2.2) {
-                const noBtn = document.getElementById('noBtn');
-                noBtn.style.opacity = '0.3';
+            const card = document.getElementById('inviteCard');
+
+            // 1. Shake card like a ticking bomb
+            card.classList.add('shake-bomb');
+
+            // 2. Send decline notification to your Gmail
+            try {
+                fetch(FORMSPREE_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        Response: 'NO (Declined - Invitation Exploded 💔)',
+                        Name: 'Chuti',
+                        Event: 'Picnic & Lunch in Negombo'
+                    })
+                });
+            } catch (err) {
+                console.error(err);
+            }
+
+            // 3. Blow up and vanish after brief shake
+            setTimeout(() => {
+                card.classList.remove('shake-bomb');
+                card.classList.add('explode');
+
+                // 4. Pop up big broken heart & bring up lava
+                setTimeout(() => {
+                    document.getElementById('brokenHeartPopup').classList.add('active');
+                    document.getElementById('lavaContainer').classList.add('lava-active');
+                    startRain(['💔', '🔥', '💥'], 150);
+                }, 300);
+            }, 600);
+        }
             }
         }
 
-        // 4. "YES" Click Action -> Rain Hearts & Send Email
+  
+        } // 4. "YES" Click Action -> Rain Hearts, Pop-Up Kiss, Thank You Card & Page Close
         async function onAccept() {
             if (isSubmitted) return;
             isSubmitted = true;
 
             document.getElementById('statusText').innerText = "Sending response...";
 
-            // Trigger Heart Rain Effect
+            // 1. Trigger Heart Rain Effect
             startRain(['❤️', '💖', '✨', '💕', '🌸'], 120);
 
-            // Send notification to your Gmail via Formspree
+            // 2. Trigger Pop-Up Kiss Effect
+            const popup = document.getElementById('brokenHeartPopup');
+            if (popup) {
+                popup.innerHTML = `
+                    <div style="font-size: 110px; filter: drop-shadow(0 0 30px rgba(255, 105, 180, 0.8)); animation: pulseHeart 1.5s infinite ease-in-out;">💋</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #ff758f; margin-top: 15px; text-shadow: 0 0 15px rgba(255, 105, 180, 0.6);">Yay! Can't wait! 😘</div>
+                `;
+                popup.classList.add('active');
+            }
+
+            // 3. Send notification to your Gmail via Formspree
             try {
                 await fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
@@ -386,23 +424,43 @@
             } catch (err) {
                 document.getElementById('statusText').innerText = "Yay! Invitation Accepted!";
             }
-        }
 
-        // 5. Rain Animation Trigger
-        function startRain(itemsArray, intervalMs) {
-            const container = document.getElementById('overlayLayer');
-            setInterval(() => {
-                const el = document.createElement('div');
-                el.className = 'falling-element';
-                el.innerText = itemsArray[Math.floor(Math.random() * itemsArray.length)];
-                el.style.left = `${Math.random() * 100}%`;
-                el.style.fontSize = `${Math.random() * 22 + 20}px`;
-                el.style.setProperty('--speed', `${Math.random() * 2 + 2}s`);
-                container.appendChild(el);
+            // 4. Show "Thank You A Lot" Card Fading Up From Bottom
+            setTimeout(() => {
+                const thankYouCard = document.createElement('div');
+                thankYouCard.style.cssText = `
+                    position: fixed;
+                    bottom: -200px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 20px;
+                    padding: 25px 35px;
+                    text-align: center;
+                    color: #fff;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+                    z-index: 200;
+                    opacity: 0;
+                    transition: all 1s ease-out;
+                `;
+                thankYouCard.innerHTML = "Thank You A Lot! ❤️✨";
+                document.body.appendChild(thankYouCard);
 
-                setTimeout(() => el.remove(), 4000);
-            }, intervalMs);
+                // Animate fade up
+                setTimeout(() => {
+                    thankYouCard.style.bottom = "100px";
+                    thankYouCard.style.opacity = "1";
+                }, 100);
+
+             
+            // 5. Close the page automatically 2 seconds after Thank You appears
+                setTimeout(() => {
+                    window.close();
+                }, 2000);
+            }, 1000);
         }
-    </script>
-</body>
-</html>
