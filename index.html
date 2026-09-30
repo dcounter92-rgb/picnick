@@ -34,7 +34,7 @@
             padding: 20px 10px;
         }
 
-        /* Ambient Stars & Floating Background Hearts (Non-blocking) */
+        /* Ambient Stars & Floating Background Hearts */
         .stars-container, .ambient-hearts {
             position: fixed;
             top: 0;
@@ -89,7 +89,7 @@
             position: relative;
             z-index: 10;
             animation: cardAppear 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            transition: transform 0.2s ease, opacity 0.5s ease;
+            transition: opacity 0.3s ease;
         }
 
         @keyframes cardAppear {
@@ -97,36 +97,18 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Explosion Animation for "NO" */
-        .explode {
-            animation: blowUp 0.3s forwards ease-out !important;
-        }
-
-        @keyframes blowUp {
-            0% { transform: scale(1); opacity: 1; filter: brightness(1); }
-            50% { transform: scale(1.4); opacity: 0.8; filter: brightness(3) drop-shadow(0 0 50px red); }
-            100% { transform: scale(2); opacity: 0; visibility: hidden; }
-        }
-
-        /* Center Pop-Up Display (Kiss) */
-        .popup-display {
+        /* Shattered Card Piece Styling */
+        .card-piece {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            z-index: 101;
-            text-align: center;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            z-index: 50;
             pointer-events: none;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .popup-display.active {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        @keyframes pulseSymbol {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            transition: transform 2.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 2.5s ease;
         }
 
         .badge {
@@ -250,6 +232,27 @@
             z-index: 1;
         }
 
+        /* Pop-Up Center Display */
+        .popup-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 101;
+            text-align: center;
+            pointer-events: none;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .popup-display.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        @keyframes pulseSymbol {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         /* Full Screen Animation Overlay */
         .overlay-layer {
             position: fixed;
@@ -274,7 +277,7 @@
             }
         }
 
-        /* Blackout Layer for Ending */
+        /* Blackout Screen for Final Transition */
         .blackout-screen {
             position: fixed;
             top: 0;
@@ -420,13 +423,10 @@
 
         let isSubmitted = false;
 
-        // 3. "NO" Button Click: Blow up invitation & close immediately
+        // 3. "NO" Button Click: Tear card into multiple pieces, let them fall, close in 3.5s
         async function onDecline() {
             if (isSubmitted) return;
             isSubmitted = true;
-
-            const card = document.getElementById('inviteCard');
-            card.classList.add('explode');
 
             // Send notification email in background
             try {
@@ -434,7 +434,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        Response: 'NO (Declined - Invitation Exploded 💔)',
+                        Response: 'NO (Declined - Card Torn to Pieces 💔)',
                         Name: 'Chuti',
                         Event: 'Picnic & Lunch in Negombo'
                     })
@@ -443,10 +443,62 @@
                 console.error(err);
             }
 
-            // Close window immediately after explosion
+            tearCardIntoPieces();
+
+            // Wait 3.5 seconds for the smooth falling animation before closing
             setTimeout(() => {
                 window.close();
-            }, 300);
+            }, 3500);
+        }
+
+        // Helper Function: Split card into 9 pieces and float/fall them down smoothly
+        function tearCardIntoPieces() {
+            const card = document.getElementById('inviteCard');
+            const rect = card.getBoundingClientRect();
+            
+            // Hide original card instantly
+            card.style.opacity = '0';
+            card.style.pointerEvents = 'none';
+
+            const rows = 3;
+            const cols = 3;
+            const pieceWidth = rect.width / cols;
+            const pieceHeight = rect.height / rows;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'card-piece';
+                    piece.style.width = `${pieceWidth}px`;
+                    piece.style.height = `${pieceHeight}px`;
+                    piece.style.left = `${rect.left + (c * pieceWidth)}px`;
+                    piece.style.top = `${rect.top + (r * pieceHeight)}px`;
+                    piece.style.borderRadius = '12px';
+
+                    // Clone the card HTML into each piece to preserve visual style
+                    const clone = card.cloneNode(true);
+                    clone.style.opacity = '1';
+                    clone.style.position = 'absolute';
+                    clone.style.left = `-${c * pieceWidth}px`;
+                    clone.style.top = `-${r * pieceHeight}px`;
+                    clone.style.width = `${rect.width}px`;
+                    clone.style.height = `${rect.height}px`;
+                    clone.style.margin = '0';
+
+                    piece.appendChild(clone);
+                    document.body.appendChild(piece);
+
+                    // Animate piece drifting apart, spinning, and falling down smoothly
+                    setTimeout(() => {
+                        const moveX = (c - 1) * 140 + (Math.random() * 80 - 40);
+                        const moveY = window.innerHeight + 200; // Fall past screen bottom
+                        const rotate = (Math.random() * 360 - 180);
+
+                        piece.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)`;
+                        piece.style.opacity = '0';
+                    }, 50);
+                }
+            }
         }
 
         // 4. "YES" Button Click: Kiss pop-up -> Blackout -> Thank You card in center
