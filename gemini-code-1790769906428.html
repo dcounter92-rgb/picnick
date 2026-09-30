@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Invitation for Chuti ✨</title>
+    <style>
+        :root {
+            --primary-pink: #ff4d6d;
+            --secondary-pink: #ff758f;
+            --dark-bg: #0f051d;
+            --card-bg: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(255, 77, 109, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(199, 125, 255, 0.15) 0%, transparent 40%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 20px 10px;
+        }
+
+        /* Ambient Stars & Floating Background Hearts */
+        .stars-container, .ambient-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .ambient-heart {
+            position: absolute;
+            color: rgba(255, 117, 143, 0.25);
+            font-size: var(--size);
+            left: var(--left);
+            bottom: -50px;
+            animation: floatUp var(--duration) linear infinite;
+            animation-delay: var(--delay);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-105vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Card Container */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 28px;
+            padding: 40px 30px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: cardAppear 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: scale(0.9) translateY(40px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 77, 109, 0.2);
+            color: #ff8fa3;
+            border: 1px solid rgba(255, 77, 109, 0.4);
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #ffffff, #ffb3c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .info-container {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 22px;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .icon {
+            font-size: 1.4rem;
+            margin-right: 14px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .game-plan {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.15);
+        }
+
+        .plan-header {
+            font-weight: 600;
+            color: #ff8fa3;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .plan-step {
+            font-size: 0.9rem;
+            color: #d0d0d0;
+            margin-left: 10px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .plan-step::before {
+            content: "•";
+            color: var(--secondary-pink);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* Buttons & Dynamic Growing Behavior */
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 25px;
+            position: relative;
+            min-height: 60px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff4d6d, #ff758f);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(255, 77, 109, 0.5);
+            z-index: 2;
+        }
+
+        .btn-yes:hover {
+            box-shadow: 0 12px 30px rgba(255, 77, 109, 0.7);
+        }
+
+        .btn-no {
+            background: rgba(255, 255, 255, 0.12);
+            color: #bbb;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        /* Full Screen Animation Overlays */
+        .overlay-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .falling-element {
+            position: absolute;
+            top: -60px;
+            animation: fallDown var(--speed) linear forwards;
+        }
+
+        @keyframes fallDown {
+            to {
+                transform: translateY(110vh) rotate(360deg);
+            }
+        }
+
+        /* Lava Pit Bottom */
+        .lava-container {
+            position: fixed;
+            bottom: -150px;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(0deg, #ff1a1a 0%, #ff6b00 70%, transparent 100%);
+            box-shadow: 0 -10px 40px #ff3300;
+            transition: bottom 1.2s cubic-bezier(0.1, 0.8, 0.3, 1);
+            z-index: 90;
+        }
+
+        .lava-active {
+            bottom: 0;
+        }
+
+        .status-text {
+            margin-top: 18px;
+            font-size: 0.85rem;
+            color: #ff8fa3;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Stars & Floating Hearts Background -->
+    <div class="stars-container" id="starsContainer"></div>
+    <div class="ambient-hearts" id="ambientHearts"></div>
+
+    <!-- Main Invitation Card -->
+    <div class="card">
+        <span class="badge">Official Invitation</span>
+        <h1>For: Chuti ❤️</h1>
+
+        <div class="info-container">
+            <div class="info-row">
+                <span class="icon">🧺</span>
+                <span><strong>Event:</strong> Picnic & Lunch</span>
+            </div>
+            <div class="info-row">
+                <span class="icon">📍</span>
+                <span><strong>Location:</strong> Negombo</span>
+            </div>
+            <div class="info-row">
+                <span class="icon">📅</span>
+                <span><strong>When:</strong> Nov 4th | 10:30 AM – 2:30 PM</span>
+            </div>
+
+            <div class="game-plan">
+                <div class="plan-header">The Game Plan</div>
+                <div class="plan-step">Relaxing outdoor picnic</div>
+                <div class="plan-step">Lunch at a great spot</div>
+                <div class="plan-step">Heading back home together</div>
+            </div>
+        </div>
+
+        <p style="font-size: 0.95rem; color: #e0e0e0; font-weight: 500;">Will you come with me?</p>
+
+        <div class="btn-container">
+            <button class="btn btn-yes" id="yesBtn" onclick="onAccept()">YES! ✨</button>
+            <button class="btn btn-no" id="noBtn" onclick="onDecline()">NO 💔</button>
+        </div>
+
+        <div class="status-text" id="statusText"></div>
+    </div>
+
+    <!-- Animation Layer & Lava Pit -->
+    <div class="overlay-layer" id="overlayLayer"></div>
+    <div class="lava-container" id="lavaContainer"></div>
+
+    <script>
+        // Formspree Integration Endpoint
+        const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdekbvzn';[cite: 1]
+
+        // 1. Generate Twinkling Stars
+        const starsContainer = document.getElementById('starsContainer');
+        for (let i = 0; i < 60; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = `${Math.random() * 3 + 1}px`;
+            star.style.height = star.style.width;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+            starsContainer.appendChild(star);
+        }
+
+        // 2. Generate Floating Background Hearts
+        const ambientHearts = document.getElementById('ambientHearts');
+        const heartSymbols = ['❤️', '💖', '✨', '💕'];
+        for (let i = 0; i < 18; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'ambient-heart';
+            heart.innerText = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+            heart.style.setProperty('--size', `${Math.random() * 16 + 12}px`);
+            heart.style.setProperty('--left', `${Math.random() * 100}%`);
+            heart.style.setProperty('--duration', `${Math.random() * 8 + 6}s`);
+            heart.style.setProperty('--delay', `${Math.random() * 5}s`);
+            ambientHearts.appendChild(heart);
+        }
+
+        let yesScale = 1;
+        let isSubmitted = false;
+
+        // 3. Dynamic "NO" Button click logic -> Grows the "YES" button!
+        function onDecline() {
+            if (isSubmitted) return;
+            
+            yesScale += 0.35;
+            const yesBtn = document.getElementById('yesBtn');
+            yesBtn.style.transform = `scale(${yesScale})`;
+
+            if (yesScale > 2.2) {
+                const noBtn = document.getElementById('noBtn');
+                noBtn.style.opacity = '0.3';
+            }
+        }
+
+        // 4. "YES" Click Action -> Rain Hearts & Send Email
+        async function onAccept() {
+            if (isSubmitted) return;
+            isSubmitted = true;
+
+            document.getElementById('statusText').innerText = "Sending response...";
+
+            // Trigger Heart Rain Effect
+            startRain(['❤️', '💖', '✨', '💕', '🌸'], 120);
+
+            // Send notification to your Gmail via Formspree
+            try {
+                await fetch(FORMSPREE_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        Response: 'YES! She accepted the invitation! ❤️',
+                        Name: 'Chuti',
+                        Event: 'Picnic & Lunch in Negombo',
+                        Date: 'November 4th (10:30 AM - 2:30 PM)'
+                    })
+                });
+                document.getElementById('statusText').innerText = "Yay! See you on Nov 4th! ❤️";
+            } catch (err) {
+                document.getElementById('statusText').innerText = "Yay! Invitation Accepted!";
+            }
+        }
+
+        // 5. Rain Animation Trigger
+        function startRain(itemsArray, intervalMs) {
+            const container = document.getElementById('overlayLayer');
+            setInterval(() => {
+                const el = document.createElement('div');
+                el.className = 'falling-element';
+                el.innerText = itemsArray[Math.floor(Math.random() * itemsArray.length)];
+                el.style.left = `${Math.random() * 100}%`;
+                el.style.fontSize = `${Math.random() * 22 + 20}px`;
+                el.style.setProperty('--speed', `${Math.random() * 2 + 2}s`);
+                container.appendChild(el);
+
+                setTimeout(() => el.remove(), 4000);
+            }, intervalMs);
+        }
+    </script>
+</body>
+</html>
