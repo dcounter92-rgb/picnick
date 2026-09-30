@@ -34,7 +34,7 @@
             padding: 20px 10px;
         }
 
-        /* Ambient Stars & Floating Background Hearts */
+        /* Ambient Stars & Floating Background Hearts (Non-blocking) */
         .stars-container, .ambient-hearts {
             position: fixed;
             top: 0;
@@ -89,11 +89,59 @@
             position: relative;
             z-index: 10;
             animation: cardAppear 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            transition: transform 0.2s ease, opacity 0.5s ease;
         }
 
         @keyframes cardAppear {
             from { opacity: 0; transform: scale(0.9) translateY(40px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Bomb & Explosion Animations for "NO" */
+        .shake-bomb {
+            animation: shake 0.5s infinite;
+            background: rgba(255, 0, 0, 0.3) !important;
+            border-color: #ff0000 !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .explode {
+            animation: blowUp 0.4s forwards ease-out !important;
+        }
+
+        @keyframes blowUp {
+            0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+            50% { transform: scale(1.4); opacity: 0.8; filter: brightness(3) drop-shadow(0 0 50px red); }
+            100% { transform: scale(2); opacity: 0; visibility: hidden; }
+        }
+
+        /* Center Pop-Up Display (Broken Heart or Kiss) */
+        .popup-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 101;
+            text-align: center;
+            pointer-events: none;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .popup-display.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        @keyframes pulseSymbol {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         .badge {
@@ -177,7 +225,7 @@
             margin-right: 8px;
         }
 
-        /* Buttons & Dynamic Growing Behavior */
+        /* Interactive Buttons */
         .btn-container {
             display: flex;
             gap: 15px;
@@ -186,6 +234,7 @@
             margin-top: 25px;
             position: relative;
             min-height: 60px;
+            z-index: 20;
         }
 
         .btn {
@@ -251,6 +300,7 @@
             box-shadow: 0 -10px 40px #ff3300;
             transition: bottom 1.2s cubic-bezier(0.1, 0.8, 0.3, 1);
             z-index: 90;
+            pointer-events: none;
         }
 
         .lava-active {
@@ -267,19 +317,19 @@
 </head>
 <body>
 
-    <!-- Stars & Floating Hearts Background -->
+    <!-- Stars & Floating Background Hearts -->
     <div class="stars-container" id="starsContainer"></div>
     <div class="ambient-hearts" id="ambientHearts"></div>
 
     <!-- Main Invitation Card -->
-    <div class="card">
+    <div class="card" id="inviteCard">
         <span class="badge">Official Invitation</span>
-        <h1>For: Dear Chuti ❤️</h1>
+        <h1>For: Chuti ❤️</h1>
 
         <div class="info-container">
             <div class="info-row">
                 <span class="icon">🧺</span>
-                <span><strong>Occasion:</strong> Picnic & Lunch</span>
+                <span><strong>Event:</strong> Picnic & Lunch</span>
             </div>
             <div class="info-row">
                 <span class="icon">📍</span>
@@ -291,14 +341,14 @@
             </div>
 
             <div class="game-plan">
-                <div class="plan-header"> Blueprint </div>
+                <div class="plan-header">The Game Plan</div>
                 <div class="plan-step">Relaxing outdoor picnic</div>
-                <div class="plan-step">Lunch at a Charming location </div>
+                <div class="plan-step">Lunch at a great spot</div>
                 <div class="plan-step">Heading back home together</div>
             </div>
         </div>
 
-        <p style="font-size: 0.95rem; color: #e0e0e0; font-weight: 500;"> Would you care to accompany me? </p>
+        <p style="font-size: 0.95rem; color: #e0e0e0; font-weight: 500;">Will you come with me?</p>
 
         <div class="btn-container">
             <button class="btn btn-yes" id="yesBtn" onclick="onAccept()">YES! ✨</button>
@@ -308,13 +358,16 @@
         <div class="status-text" id="statusText"></div>
     </div>
 
+    <!-- Pop-Up Center Display Element -->
+    <div class="popup-display" id="popupDisplay"></div>
+
     <!-- Animation Layer & Lava Pit -->
     <div class="overlay-layer" id="overlayLayer"></div>
     <div class="lava-container" id="lavaContainer"></div>
 
     <script>
         // Formspree Integration Endpoint
-        const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdekbvzn';[cite: 1]
+        const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdekbvzn';
 
         // 1. Generate Twinkling Stars
         const starsContainer = document.getElementById('starsContainer');
@@ -343,20 +396,19 @@
             ambientHearts.appendChild(heart);
         }
 
-        let yesScale = 1;
         let isSubmitted = false;
 
-      // Dynamic "NO" Button Logic: Bomb Explosion + Broken Heart Pop-Up
+        // 3. Dynamic "NO" Button Logic: Bomb Explosion + Broken Heart Pop-Up
         async function onDecline() {
             if (isSubmitted) return;
             isSubmitted = true;
 
             const card = document.getElementById('inviteCard');
 
-            // 1. Shake card like a ticking bomb
+            // Shake card like a ticking bomb
             card.classList.add('shake-bomb');
 
-            // 2. Send decline notification to your Gmail
+            // Send decline notification to your Gmail
             try {
                 fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
@@ -371,44 +423,48 @@
                 console.error(err);
             }
 
-            // 3. Blow up and vanish after brief shake
+            // Blow up and vanish after brief shake
             setTimeout(() => {
                 card.classList.remove('shake-bomb');
                 card.classList.add('explode');
 
-                // 4. Pop up big broken heart & bring up lava
+                // Pop up big broken heart & bring up lava
                 setTimeout(() => {
-                    document.getElementById('brokenHeartPopup').classList.add('active');
+                    const popup = document.getElementById('popupDisplay');
+                    if (popup) {
+                        popup.innerHTML = `
+                            <div style="font-size: 110px; filter: drop-shadow(0 0 30px rgba(255, 0, 0, 0.8)); animation: pulseSymbol 1.5s infinite ease-in-out;">💔</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #ff4d4d; margin-top: 15px; text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);">Oh no... Invitation Destroyed!</div>
+                        `;
+                        popup.classList.add('active');
+                    }
                     document.getElementById('lavaContainer').classList.add('lava-active');
                     startRain(['💔', '🔥', '💥'], 150);
                 }, 300);
             }, 600);
         }
-            }
-        }
 
-  
-        } // 4. "YES" Click Action -> Rain Hearts, Pop-Up Kiss, Thank You Card & Page Close
+        // 4. "YES" Click Action -> Rain Hearts, Pop-Up Kiss, Thank You Card & Page Close
         async function onAccept() {
             if (isSubmitted) return;
             isSubmitted = true;
 
             document.getElementById('statusText').innerText = "Sending response...";
 
-            // 1. Trigger Heart Rain Effect
+            // Trigger Heart Rain Effect
             startRain(['❤️', '💖', '✨', '💕', '🌸'], 120);
 
-            // 2. Trigger Pop-Up Kiss Effect
-            const popup = document.getElementById('brokenHeartPopup');
+            // Trigger Pop-Up Kiss Effect
+            const popup = document.getElementById('popupDisplay');
             if (popup) {
                 popup.innerHTML = `
-                    <div style="font-size: 110px; filter: drop-shadow(0 0 30px rgba(255, 105, 180, 0.8)); animation: pulseHeart 1.5s infinite ease-in-out;">💋</div>
+                    <div style="font-size: 110px; filter: drop-shadow(0 0 30px rgba(255, 105, 180, 0.8)); animation: pulseSymbol 1.5s infinite ease-in-out;">💋</div>
                     <div style="font-size: 1.5rem; font-weight: 700; color: #ff758f; margin-top: 15px; text-shadow: 0 0 15px rgba(255, 105, 180, 0.6);">Yay! Can't wait! 😘</div>
                 `;
                 popup.classList.add('active');
             }
 
-            // 3. Send notification to your Gmail via Formspree
+            // Send notification to your Gmail via Formspree
             try {
                 await fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
@@ -425,7 +481,7 @@
                 document.getElementById('statusText').innerText = "Yay! Invitation Accepted!";
             }
 
-            // 4. Show "Thank You A Lot" Card Fading Up From Bottom
+            // Show "Thank You A Lot" Card Fading Up From Bottom
             setTimeout(() => {
                 const thankYouCard = document.createElement('div');
                 thankYouCard.style.cssText = `
@@ -457,10 +513,28 @@
                     thankYouCard.style.opacity = "1";
                 }, 100);
 
-             
-            // 5. Close the page automatically 2 seconds after Thank You appears
+                // Close the page automatically 2 seconds after Thank You appears
                 setTimeout(() => {
                     window.close();
                 }, 2000);
             }, 1000);
         }
+
+        // 5. Rain Animation Trigger
+        function startRain(itemsArray, intervalMs) {
+            const container = document.getElementById('overlayLayer');
+            setInterval(() => {
+                const el = document.createElement('div');
+                el.className = 'falling-element';
+                el.innerText = itemsArray[Math.floor(Math.random() * itemsArray.length)];
+                el.style.left = `${Math.random() * 100}%`;
+                el.style.fontSize = `${Math.random() * 22 + 20}px`;
+                el.style.setProperty('--speed', `${Math.random() * 2 + 2}s`);
+                container.appendChild(el);
+
+                setTimeout(() => el.remove(), 4000);
+            }, intervalMs);
+        }
+    </script>
+</body>
+</html>
