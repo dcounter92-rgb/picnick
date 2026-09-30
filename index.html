@@ -89,7 +89,7 @@
             position: relative;
             z-index: 10;
             animation: cardAppear 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            transition: opacity 0.3s ease;
+            transition: opacity 1s ease, filter 1s ease;
         }
 
         @keyframes cardAppear {
@@ -97,18 +97,39 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Shattered Card Piece Styling */
-        .card-piece {
-            position: fixed;
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            overflow: hidden;
-            z-index: 50;
-            pointer-events: none;
-            transition: transform 2.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 2.5s ease;
+        /* Slow 5-Second Burning Fire Animation */
+        .card-burn {
+            animation: slowBurn 5s forwards linear;
+        }
+
+        @keyframes slowBurn {
+            0% {
+                filter: drop-shadow(0 0 10px #ff3300) brightness(1);
+                box-shadow: 0 0 20px #ff4500;
+            }
+            25% {
+                filter: drop-shadow(0 -20px 30px #ff0000) brightness(1.3) contrast(1.5);
+                box-shadow: inset 0 -100px 80px rgba(255, 69, 0, 0.8), 0 0 40px #ff0000;
+                transform: scale(0.98) rotate(1deg);
+            }
+            50% {
+                filter: drop-shadow(0 -30px 50px #ff6600) brightness(1.6) contrast(2);
+                box-shadow: inset 0 -200px 100px rgba(255, 0, 0, 0.9), 0 0 60px #ff4500;
+                transform: scale(0.95) rotate(-1.5deg);
+                opacity: 0.8;
+            }
+            75% {
+                filter: drop-shadow(0 -40px 60px #ffaa00) brightness(0.6) contrast(2.5);
+                box-shadow: inset 0 -350px 120px rgba(0, 0, 0, 0.95), 0 0 40px #ff0000;
+                transform: scale(0.9) translateY(20px) rotate(2deg);
+                opacity: 0.4;
+            }
+            100% {
+                filter: brightness(0);
+                box-shadow: 0 0 0 transparent;
+                transform: scale(0.8) translateY(60px);
+                opacity: 0;
+            }
         }
 
         .badge {
@@ -232,16 +253,16 @@
             z-index: 1;
         }
 
-        /* Pop-Up Center Display */
+        /* Pop-Up Center Display (Sits above Blackout) */
         .popup-display {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            z-index: 101;
+            z-index: 350;
             text-align: center;
             pointer-events: none;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.8s ease;
         }
 
         .popup-display.active {
@@ -277,7 +298,7 @@
             }
         }
 
-        /* Blackout Screen for Final Transition */
+        /* Smooth Pure Black Background Layer */
         .blackout-screen {
             position: fixed;
             top: 0;
@@ -382,7 +403,7 @@
     <!-- Falling Animation Overlay -->
     <div class="overlay-layer" id="overlayLayer"></div>
 
-    <!-- Blackout Screen for Final Transition -->
+    <!-- Blackout Screen for Background Transition -->
     <div class="blackout-screen" id="blackoutScreen"></div>
 
     <!-- Centered Final Thank You Card -->
@@ -423,10 +444,16 @@
 
         let isSubmitted = false;
 
-        // 3. "NO" Button Click: Tear card into multiple pieces, let them fall, close in 3.5s
+        // 3. "NO" Button Click: Slow 5-second fire burn animation, then close window
         async function onDecline() {
             if (isSubmitted) return;
             isSubmitted = true;
+
+            const card = document.getElementById('inviteCard');
+            card.classList.add('card-burn');
+
+            // Spawn fire embers & sparks around the card
+            startFireParticles();
 
             // Send notification email in background
             try {
@@ -434,7 +461,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        Response: 'NO (Declined - Card Torn to Pieces 💔)',
+                        Response: 'NO (Declined - Card Burned to Ashes 💔)',
                         Name: 'Chuti',
                         Event: 'Picnic & Lunch in Negombo'
                     })
@@ -443,65 +470,32 @@
                 console.error(err);
             }
 
-            tearCardIntoPieces();
-
-            // Wait 3.5 seconds for the smooth falling animation before closing
+            // Close window automatically after full 5-second burn animation
             setTimeout(() => {
                 window.close();
-            }, 3500);
+            }, 5000);
         }
 
-        // Helper Function: Split card into 9 pieces and float/fall them down smoothly
-        function tearCardIntoPieces() {
-            const card = document.getElementById('inviteCard');
-            const rect = card.getBoundingClientRect();
-            
-            // Hide original card instantly
-            card.style.opacity = '0';
-            card.style.pointerEvents = 'none';
+        // Helper Function: Rain fire embers during burning
+        function startFireParticles() {
+            const container = document.getElementById('overlayLayer');
+            const fireSymbols = ['🔥', '💥', '✨', '💨'];
+            const interval = setInterval(() => {
+                const el = document.createElement('div');
+                el.className = 'falling-element';
+                el.innerText = fireSymbols[Math.floor(Math.random() * fireSymbols.length)];
+                el.style.left = `${Math.random() * 60 + 20}%`;
+                el.style.fontSize = `${Math.random() * 20 + 15}px`;
+                el.style.setProperty('--speed', `${Math.random() * 2 + 1.5}s`);
+                container.appendChild(el);
 
-            const rows = 3;
-            const cols = 3;
-            const pieceWidth = rect.width / cols;
-            const pieceHeight = rect.height / rows;
+                setTimeout(() => el.remove(), 3500);
+            }, 100);
 
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const piece = document.createElement('div');
-                    piece.className = 'card-piece';
-                    piece.style.width = `${pieceWidth}px`;
-                    piece.style.height = `${pieceHeight}px`;
-                    piece.style.left = `${rect.left + (c * pieceWidth)}px`;
-                    piece.style.top = `${rect.top + (r * pieceHeight)}px`;
-                    piece.style.borderRadius = '12px';
-
-                    // Clone the card HTML into each piece to preserve visual style
-                    const clone = card.cloneNode(true);
-                    clone.style.opacity = '1';
-                    clone.style.position = 'absolute';
-                    clone.style.left = `-${c * pieceWidth}px`;
-                    clone.style.top = `-${r * pieceHeight}px`;
-                    clone.style.width = `${rect.width}px`;
-                    clone.style.height = `${rect.height}px`;
-                    clone.style.margin = '0';
-
-                    piece.appendChild(clone);
-                    document.body.appendChild(piece);
-
-                    // Animate piece drifting apart, spinning, and falling down smoothly
-                    setTimeout(() => {
-                        const moveX = (c - 1) * 140 + (Math.random() * 80 - 40);
-                        const moveY = window.innerHeight + 200; // Fall past screen bottom
-                        const rotate = (Math.random() * 360 - 180);
-
-                        piece.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)`;
-                        piece.style.opacity = '0';
-                    }, 50);
-                }
-            }
+            setTimeout(() => clearInterval(interval), 4800);
         }
 
-        // 4. "YES" Button Click: Kiss pop-up -> Blackout -> Thank You card in center
+        // 4. "YES" Button Click: Simultaneously show Kiss Pop-up + Blackout background, then slide Thank You card to middle
         async function onAccept() {
             if (isSubmitted) return;
             isSubmitted = true;
@@ -511,7 +505,7 @@
             // Trigger Heart Rain Effect
             startRain(['❤️', '💖', '✨', '💕', '🌸'], 120);
 
-            // Trigger Pop-Up Kiss
+            // Pop-Up Kiss Display
             const popup = document.getElementById('popupDisplay');
             if (popup) {
                 popup.innerHTML = `
@@ -520,6 +514,9 @@
                 `;
                 popup.classList.add('active');
             }
+
+            // SIMULTANEOUSLY fade background to pure black for high contrast
+            document.getElementById('blackoutScreen').classList.add('active');
 
             // Send notification email
             try {
@@ -537,14 +534,14 @@
                 console.error(err);
             }
 
-            // Transition into pure black background & show Thank You card in middle
+            // After showing the Kiss pop-up on black background, fade popup and bring up Thank You Card
             setTimeout(() => {
-                document.getElementById('blackoutScreen').classList.add('active');
+                popup.style.opacity = '0';
                 
                 setTimeout(() => {
                     document.getElementById('thankYouCard').classList.add('center-active');
-                }, 400);
-            }, 1200);
+                }, 300);
+            }, 1800);
         }
 
         // 5. Rain Animation Trigger
