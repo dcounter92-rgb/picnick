@@ -34,7 +34,7 @@
             padding: 20px 10px;
         }
 
-        /* Ambient Stars & Floating Background Hearts */
+        /* Background Effects */
         .stars-container, .ambient-hearts {
             position: fixed;
             top: 0;
@@ -74,7 +74,7 @@
             100% { transform: translateY(-105vh) rotate(360deg); opacity: 0; }
         }
 
-        /* Card Container */
+        /* Invitation Card */
         .card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
@@ -89,7 +89,7 @@
             position: relative;
             z-index: 10;
             animation: cardAppear 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            transition: opacity 1s ease, filter 1s ease;
+            transition: opacity 1s ease, filter 1s ease, transform 1s ease;
         }
 
         @keyframes cardAppear {
@@ -97,7 +97,7 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Slow 5-Second Burning Fire Animation */
+        /* Smooth 5-Second Burning Fire Sequence */
         .card-burn {
             animation: slowBurn 5s forwards linear;
         }
@@ -213,7 +213,7 @@
             margin-right: 8px;
         }
 
-        /* Interactive Buttons */
+        /* Action Buttons */
         .btn-container {
             display: flex;
             gap: 15px;
@@ -253,7 +253,7 @@
             z-index: 1;
         }
 
-        /* Pop-Up Center Display (Sits above Blackout) */
+        /* Kiss Pop-Up Overlay */
         .popup-display {
             position: fixed;
             top: 50%;
@@ -274,7 +274,7 @@
             50% { transform: scale(1.1); }
         }
 
-        /* Full Screen Animation Overlay */
+        /* Animation Layer (Rain / Sparks) */
         .overlay-layer {
             position: fixed;
             top: 0;
@@ -298,7 +298,7 @@
             }
         }
 
-        /* Smooth Pure Black Background Layer */
+        /* Pure Black Fade Background */
         .blackout-screen {
             position: fixed;
             top: 0;
@@ -317,7 +317,7 @@
             pointer-events: auto;
         }
 
-        /* Centered Final Thank You Card */
+        /* Final Thank You Card */
         .thank-you-card {
             position: fixed;
             bottom: -250px;
@@ -356,11 +356,11 @@
 </head>
 <body>
 
-    <!-- Stars & Floating Background Hearts -->
+    <!-- Background Elements -->
     <div class="stars-container" id="starsContainer"></div>
     <div class="ambient-hearts" id="ambientHearts"></div>
 
-    <!-- Main Invitation Card -->
+    <!-- Main Card -->
     <div class="card" id="inviteCard">
         <span class="badge">Official Invitation</span>
         <h1>For: Chuti ❤️</h1>
@@ -397,25 +397,24 @@
         <div class="status-text" id="statusText"></div>
     </div>
 
-    <!-- Pop-Up Kiss Display -->
+    <!-- Kiss Display -->
     <div class="popup-display" id="popupDisplay"></div>
 
-    <!-- Falling Animation Overlay -->
+    <!-- Animation Layer -->
     <div class="overlay-layer" id="overlayLayer"></div>
 
-    <!-- Blackout Screen for Background Transition -->
+    <!-- Black Background Transition -->
     <div class="blackout-screen" id="blackoutScreen"></div>
 
-    <!-- Centered Final Thank You Card -->
+    <!-- Final Display Card -->
     <div class="thank-you-card" id="thankYouCard">
         Thank You A Lot! ❤️✨
     </div>
 
     <script>
-        // Formspree Integration Endpoint
         const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdekbvzn';
 
-        // 1. Generate Twinkling Stars
+        // Stars Generation
         const starsContainer = document.getElementById('starsContainer');
         for (let i = 0; i < 60; i++) {
             const star = document.createElement('div');
@@ -428,7 +427,7 @@
             starsContainer.appendChild(star);
         }
 
-        // 2. Generate Floating Background Hearts
+        // Ambient Background Hearts
         const ambientHearts = document.getElementById('ambientHearts');
         const heartSymbols = ['❤️', '💖', '✨', '💕'];
         for (let i = 0; i < 18; i++) {
@@ -444,7 +443,7 @@
 
         let isSubmitted = false;
 
-        // 3. "NO" Button Click: Slow 5-second fire burn animation, then close window
+        // "NO" Button Event Handler
         async function onDecline() {
             if (isSubmitted) return;
             isSubmitted = true;
@@ -452,10 +451,8 @@
             const card = document.getElementById('inviteCard');
             card.classList.add('card-burn');
 
-            // Spawn fire embers & sparks around the card
             startFireParticles();
 
-            // Send notification email in background
             try {
                 fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
@@ -470,13 +467,11 @@
                 console.error(err);
             }
 
-            // Close window automatically after full 5-second burn animation
             setTimeout(() => {
                 window.close();
             }, 5000);
         }
 
-        // Helper Function: Rain fire embers during burning
         function startFireParticles() {
             const container = document.getElementById('overlayLayer');
             const fireSymbols = ['🔥', '💥', '✨', '💨'];
@@ -495,17 +490,15 @@
             setTimeout(() => clearInterval(interval), 4800);
         }
 
-        // 4. "YES" Button Click: Simultaneously show Kiss Pop-up + Blackout background, then slide Thank You card to middle
+        // "YES" Button Event Handler
         async function onAccept() {
             if (isSubmitted) return;
             isSubmitted = true;
 
             document.getElementById('statusText').innerText = "Sending response...";
 
-            // Trigger Heart Rain Effect
             startRain(['❤️', '💖', '✨', '💕', '🌸'], 120);
 
-            // Pop-Up Kiss Display
             const popup = document.getElementById('popupDisplay');
             if (popup) {
                 popup.innerHTML = `
@@ -515,10 +508,8 @@
                 popup.classList.add('active');
             }
 
-            // SIMULTANEOUSLY fade background to pure black for high contrast
             document.getElementById('blackoutScreen').classList.add('active');
 
-            // Send notification email
             try {
                 await fetch(FORMSPREE_ENDPOINT, {
                     method: 'POST',
@@ -534,7 +525,6 @@
                 console.error(err);
             }
 
-            // After showing the Kiss pop-up on black background, fade popup and bring up Thank You Card
             setTimeout(() => {
                 popup.style.opacity = '0';
                 
@@ -544,7 +534,6 @@
             }, 1800);
         }
 
-        // 5. Rain Animation Trigger
         function startRain(itemsArray, intervalMs) {
             const container = document.getElementById('overlayLayer');
             setInterval(() => {
